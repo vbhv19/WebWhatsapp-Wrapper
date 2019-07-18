@@ -75,7 +75,7 @@ See sample directory for more complex usage examples.
 
 ### 2. Instantiate driver and set username
 
-    driver = WhatsAPIDriver(username="mkhase")
+    driver = WhatsAPIDriver(client='chrome')
 
 Possible arguments for constructor:
 

@@ -1,0 +1,212 @@
+<html>
+<h1>
+HPS Whatsapp
+</h1>
+
+<head>
+	<style>
+		.button {
+			background-color: #4CAF50; /* Green */
+			border: none;
+			color: white;
+			padding: 16px 32px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 20px;
+			margin: 4px 2px;
+			transition-duration: 0.4s;
+			cursor: pointer;
+		}
+		.button1 {
+			background-color: white;
+			color: black;
+			border: 2px solid #4CAF50;
+		}
+		.button1:hover {
+			background-color: #4CAF50;
+			color: white;
+		}
+		.disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+		.disabled:hover {
+			background-color: white;
+			color: black;
+		}
+		.paddingSmall {
+			padding: 10px 20px;
+		}
+		.paddingBig {
+			padding: 32px 64px;
+		}
+
+	</style>
+</head>
+
+<body>
+
+	<div id="passContainer">
+		<p>Enter passcode</p><br>
+		<input type="password" id="passcode" >
+		<input type="submit" onclick="auth()">
+	</div>
+
+	<div id="waContainer" style="display: none; width: 100%;">
+		<button type="button" id="checkDriverLoaded" onclick="openWhatsapp()" class="button button1" style="vertical-align:middle">
+			Open web whatsapp
+		</button>
+
+		<br>
+
+		<form id="pform"  style="display: none;">
+			<div style="  display: -webkit-flex; display: flex;">
+				<div style="-webkit-flex: 1; -ms-flex: 1; flex: 1;">
+					<p style="font-size: 20">Set message in the box below</p>
+					<textarea name="text" id="msg" rows="10" cols="60" wrap="soft" style="font-size: 15"> </textarea>
+				</div>
+
+				<div style="-webkit-flex: 1; -ms-flex: 1; flex: 1;">
+					<p style="font-size: 20;">Enter comma separated 10 digit phone numbers in box below</p>
+					<textarea name="text" id="pnumber" rows="10" cols="60" wrap="soft" style="font-size: 15"> </textarea>
+				</div>
+			</div>
+
+			<div style="margin-top: 20px; margin-bottom: 20px">
+				<input type="checkbox" id="myCheck" onclick="toggleImageOption()"> Include image in message
+				<div id="selectImage" style="display: none;">
+					<p style="font-size: 20">Enter image name (example - ajjas.jpeg)</p>
+					<textarea name="text" id="imageName" wrap="soft" style="font-size: 15"> </textarea>
+				</div>
+			</div>
+
+			<input type="submit" value="Send" class="button button1 paddingSmall">
+		</form>
+
+	</div>
+
+	<script type="text/javascript">
+		var isImageOptionEnabled;
+
+		function auth() {
+			var element = document.getElementById("passcode");
+			getReq("/authorize?auth=" + element.value, (resp)=>{
+				console.log("resp", resp)
+				var response = JSON.parse(resp.responseText);
+				console.log('authorize response', response);
+				if(response.message == "authorized") {
+					document.getElementById("waContainer").style.display = "block";
+					document.getElementById("passContainer").style.display = "none";
+				} else{
+					alert("Authorization failed");
+				}
+			});
+		}
+
+		function toggleImageOption() {
+			var element = document.getElementById("selectImage");
+			if(element.style.display == "block"){
+				element.style.display = "none";
+				isImageOptionEnabled = false;
+			}
+			else{
+				element.style.display = "block";
+				isImageOptionEnabled = true;
+			}
+		}
+
+		function setMsg() {
+			var element = document.getElementById("msg");
+			getReq("/setMsg?msg="+ element.value ,(resp)=>{
+				var response = JSON.parse(resp.responseText);
+				console.log('setMsg this.responseText', response);
+			});
+		}
+
+		function openWhatsapp() {
+			var element = document.getElementById("checkDriverLoaded");
+			element.disabled = true;
+			getReq("/driverLoaded", (resp)=>{
+				var response = JSON.parse(resp.responseText);
+				console.log('openWhatsapp ', response);
+				if(response.message == "driver available"){
+					element.classList.add("disabled");
+					element.textContent = "web whatsapp is open"
+					document.getElementById("pform").style.display = "block";
+				} else{
+					element.textContent = "Opening web whatsapp"
+					getReq("/loadDriver", (resp)=>{
+						console.log("loadDriver resp", resp);
+						var response = JSON.parse(resp.responseText);
+						if(response.message == "driver available"){
+							element.textContent = "web whatsapp is open"
+							document.getElementById("pform").style.display = "block";
+						} else {
+							element.disabled = false;
+							element.textContent = "Open web whatsapp"
+						}
+					})
+				}
+			});
+		}
+
+		document.getElementById("pform").addEventListener("submit", function(event){
+			event.preventDefault();
+			var mobs = document.getElementById("pnumber").value.split(",");
+			var allmobs = mobs.filter((d)=>{
+				d = d.trim();
+				return (parseInt(d) && (d.length == 10))
+			});
+			var msgElement = document.getElementById("msg");
+			var imageElement = document.getElementById("imageName");
+
+			if(isImageOptionEnabled && imageElement.value.trim().length == 0){
+				alert("Please enter image name to proceed");
+				return;
+			}
+
+			if(msgElement.value.trim().length == 0){
+				alert("Message is missing. Please enter some message");
+				return;
+			}
+
+			if(allmobs.length == 0){
+				alert("Mobile numbers missing. Please enter mobile numbers");
+				return;
+			}
+
+			var sendMsgUrl = "/sendMsg?mob=" + allmobs.toString() +
+				"&msg=" + encodeURIComponent(msgElement.value) +
+				"&img=" + imageElement.value.trim();
+
+			if (confirm("Are you sure you want to send following msg to " + allmobs.length + " contacts" + "\n'" + msgElement.value + "'") ) {
+				getReq(sendMsgUrl, (resp)=>{
+					var response = JSON.parse(resp.responseText);
+					console.log('send message response', response);
+					if(response.message == "message sent") {
+						alert("Message sent successfully to " + allmobs.length + " number" + (allmobs.length > 1 ? "s" : ""));
+					} else{
+						alert("Error in sending message : " + response.message);
+					}
+				});	
+			} else {
+				console.log("Message sending aborted");
+			}
+		});
+
+		function getReq(path, cb){
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				if (this.readyState == 4) {
+					cb(this);
+				}
+			};
+
+			xhttp.open("GET", "http://"+ window.location.hostname +":3003" + path , true);
+			xhttp.setRequestHeader("Content-type", "application/json");
+			xhttp.send();
+		}
+	</script>
+</body>
+</html>
