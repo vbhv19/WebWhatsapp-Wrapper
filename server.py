@@ -19,10 +19,12 @@ def sendMessage():
 		print("message", msg);
 		print("image", img);
 		# imagePath = "images/" + img
-		imagePath = os.path.join("images", img)
-		if(os.path.exists(imagePath) == False):
-			resp = getResponse('{"status": 400, "message": "Image not found"}', 501)
-			return resp
+		if(img != None):
+			print("image", img)
+			imagePath = os.path.join("images", img)
+			if(os.path.exists(imagePath) == False):
+				resp = getResponse('{"status": 400, "message": "Image not found"}', 501)
+				return resp
 
 		contacts = [x.strip() for x in mob.split(',')] + defContacts;
 		print(contacts)
@@ -35,7 +37,7 @@ def sendMessage():
 		for i in range(len(contacts)):
 				wappId = "91" + contacts[i] + "@c.us"
 				print(wappId)
-				if not img:
+				if (img == None):
 					driver.send_message_to_id(wappId, msg)
 				else:
 					driver.send_media(imagePath, wappId, msg)

@@ -120,6 +120,7 @@
 				var element = document.getElementById("selectImage");
 				if (element.style.display == "block") {
 					element.style.display = "none";
+					document.getElementById("imageName").value = ""
 					isImageOptionEnabled = false;
 				}
 				else {
@@ -189,8 +190,10 @@
 				}
 
 				var sendMsgUrl = "/sendMsg?mob=" + allmobs.toString() +
-					"&msg=" + encodeURIComponent(msgElement.value) +
-					"&img=" + imageElement.value.trim();
+					"&msg=" + encodeURIComponent(msgElement.value);
+
+				if(isImageOptionEnabled && imageElement.value.trim().length > 0)
+					sendMsgUrl += "&img=" + imageElement.value.trim();
 
 				if (confirm("Are you sure you want to send following msg to " + allmobs.length + " contacts" + "\n'" + msgElement.value + "'")) {
 					getReq(sendMsgUrl, (resp) => {
