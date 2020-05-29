@@ -7,7 +7,7 @@ app = Flask(__name__, static_url_path='')
 driver = None
 msg = None
 pwd ="hps@123";
-defContacts = ["8109583706", "7000521889"];
+defContacts = ["8109583706"];
 
 @app.route('/sendMsg')
 def sendMessage():
@@ -112,7 +112,7 @@ def loadDriver():
 		global driver
 		profiledir=os.path.join(".","chrome_cache")
 		if not os.path.exists(profiledir): os.makedirs(profiledir)
-		driver = WhatsAPIDriver(profile=profiledir, client='chrome')
+		driver = WhatsAPIDriver(profile=profiledir)
 		driver.wait_for_login()
 		resp = getResponse('{"status": 200, "message": "driver available"}', 200)
 		return resp;
