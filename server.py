@@ -95,7 +95,7 @@ def driverLoaded():
 		if(driver != None and driver.is_logged_in):
 			json = '{"status": 200, "message": "driver available"}'
 		else:
-			json = '{"status": 200, "message": "driver not available"}'
+			json = '{"status": 200, "message": "driverLoaded: driver not available"}'
 
 		resp = getResponse(json, 200)
 		return resp;
