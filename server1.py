@@ -27,6 +27,18 @@ def loadWhatsapp():
 
     if not os.path.exists(profiledir): os.makedirs(profiledir)
 
+    driversUids = list(driversMap.keys())
+
+    print("Existing drivers uids ", driversUids)
+
+    if len(driversUids) > 0:
+      respData = {}
+      respData["status"] = 403
+      respData["message"] = "Already logged in user found, Please unload existing account before loading new"
+      respData["data"] = {}
+      respData["data"]["uid"] = driversUids
+      return getResponse(json.dumps(respData), 403)
+
     userDriver = WhatsAPIDriver(headless=True, profile=profiledir)
     driversMap[str(uid)] = userDriver
 
@@ -72,7 +84,7 @@ def checkLogin():
       return getResponse('{"status": 400, "message": "uid not found in request form"}', 400)
 
     if uid not in driversMap:
-      return getResponse('{"status": 403, "message": "driver not loaded for this uid, Please load Whatsapp for this uid first "}', 403)
+      return getResponse('{"status": 403, "message": "driver not loaded, Please load Whatsapp for this uid first "}', 403)
 
     userDriver = driversMap[uid]
     is_logged_in = userDriver.is_logged_in()
@@ -241,6 +253,10 @@ def deleteProfile():
 
     if os.path.exists(profiledir):
       shutil.rmtree(profiledir)
+
+    userDriver = driversMap[str(uid)]
+    userDriver.quit()
+    driversMap.pop(str(uid), None)
 
     return getResponse('{"status": 200, "message": "Whatsapp profile deleted successfully"}', 200)
 
