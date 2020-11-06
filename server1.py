@@ -15,10 +15,11 @@ def getResponse(strJsonData, status):
 @app.route('/loadWhatsapp', methods = ['POST'])
 def loadWhatsapp():
   try:
-    if "uid" not in request.form:
-      return getResponse('{"status": 400, "message": "uid not found in request form"}', 400)
+    req_data = request.get_json()
+    uid = str(req_data['uid'])
 
-    uid = request.form['uid']
+    if not uid: 
+      return getResponse('{"status": 400, "message": "uid not found in request form"}', 400)
 
     print("driver requested for uid " + uid)
 
@@ -76,15 +77,16 @@ def unloadWhatsapp():
 @app.route('/checkLogin', methods = ['POST'])
 def checkLogin():
   try:
-    if "uid" not in request.form:
+    req_data = request.get_json()
+    uid = str(req_data['uid'])
+
+    if not uid:
       return getResponse('{"status": 400, "message": "uid not found in request form"}', 400)
 
-    uid = request.form['uid']
-
-    if str(uid) not in driversMap:
+    if uid not in driversMap:
       return getResponse('{"status": 403, "message": "driver not loaded, Please load Whatsapp for this uid first "}', 403)
 
-    userDriver = driversMap[str(uid)]
+    userDriver = driversMap[uid]
     is_logged_in = userDriver.is_logged_in()
 
     respData = {}
@@ -162,10 +164,12 @@ def getQr():
 def sendMsg():
   try:
 
-    if "uid" not in request.form:
+    req_data = request.get_json()
+
+    if not req_data['uid']:
       return getResponse('{"status": 400, "message": "uid not found in request form"}', 400)
 
-    uid = request.form['uid']
+    uid = str(req_data['uid'])
 
     if str(uid) not in driversMap:
       return getResponse('{"status": 403, "message": "driver not loaded for this uid, Please load Whatsapp for this uid first "}', 403)
@@ -176,8 +180,8 @@ def sendMsg():
     if not is_logged_in:
       return getResponse('{"status": 403, "message": "Please login before sending any message"}', 403)
 
-    mob = request.form['mob']
-    msg = request.form['msg']
+    mob = req_data['mob']
+    msg = req_data['msg']
 
     print("message", msg);
 
