@@ -182,8 +182,16 @@ def sendMsg():
 
     mob = req_data['mob']
     msg = req_data['msg']
+    filePath = req_data['fileName']
 
     print("message", msg);
+
+    if(filePath != None):
+      print("file", filePath)
+      if(os.path.exists(filePath) == False):
+        resp = getResponse('{"status": 400, "message": "File not found"}', 501)
+        return resp
+
 
     contacts = [x.strip() for x in mob.split(',')] + defaultContacts;
 
@@ -196,7 +204,10 @@ def sendMsg():
 
     for i in range(len(contacts)):
         wappId = "91" + contacts[i] + "@c.us"
-        userDriver.send_message_to_id(wappId, msg)
+        if (filePath == None):
+          userDriver.send_message_to_id(wappId, msg)
+        else:
+          userDriver.send_media(filePath, wappId, msg)
         seconds = random.randint(0, 3)
         print("sending message to ", wappId, "next delay", seconds, "seconds");
         time.sleep(seconds)
