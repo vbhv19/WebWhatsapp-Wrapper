@@ -52,17 +52,18 @@ def loadWhatsapp():
 @app.route('/unloadWhatsapp', methods = ['POST'])
 def unloadWhatsapp():
   try:
-    if "uid" not in request.form:
+    req_data = request.get_json()
+    uid = str(req_data['uid'])
+
+    if not uid:
       return getResponse('{"status": 400, "message": "uid not found in request form"}', 400)
 
-    uid = request.form['uid']
-
-    if str(uid) not in driversMap:
+    if uid not in driversMap:
       return getResponse('{"status": 403, "message": "driver not loaded for this uid, Please load Whatsapp for this uid first "}', 403)
 
     print("unloading driver for uid " + uid)
 
-    userDriver = driversMap[str(uid)]
+    userDriver = driversMap[uid]
     userDriver.quit()
     driversMap.pop(str(uid), None)
 
@@ -139,7 +140,7 @@ def getQr():
       return getResponse('{"status": 400, "message": "uid not found in args"}', 400)
 
     if str(uid) not in driversMap:
-      return getResponse('{"status": 403, "message": "driver not loaded for this uid, Please load Whatsapp for this uid first "}', 403)
+      return getResponse('{"status": 401, "message": "driver not loaded for this uid, Please load Whatsapp for this uid first "}', 403)
 
     userDriver = driversMap[str(uid)]
     is_logged_in = userDriver.is_logged_in()
@@ -224,10 +225,12 @@ def sendMsg():
 @app.route('/saveProfile', methods = ['POST'])
 def saveProfile():
   try:
-    if "uid" not in request.form:
+    req_data = request.get_json()
+    
+    if not req_data['uid']:
       return getResponse('{"status": 400, "message": "uid not found in request form"}', 400)
 
-    uid = request.form['uid']
+    uid = req_data['uid']
 
     if str(uid) not in driversMap:
       return getResponse('{"status": 403, "message": "driver not loaded for this uid, Please load Whatsapp for this uid first"}', 403)
@@ -255,10 +258,12 @@ def saveProfile():
 @app.route('/deleteProfile', methods = ['DELETE'])
 def deleteProfile():
   try:
-    if "uid" not in request.form:
+    req_data = request.get_json()
+
+    if not req_data['uid']:
       return getResponse('{"status": 400, "message": "uid not found in request form"}', 400)
 
-    uid = request.form['uid']
+    uid = req_data['uid']
 
     profiledir = os.path.join(".", str(uid) + "_cache")
 
