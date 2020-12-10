@@ -54,6 +54,7 @@ def unloadWhatsapp():
   try:
     req_data = request.get_json()
     uid = str(req_data['uid'])
+    print("uid", uid);
 
     if not uid:
       return getResponse('{"status": 400, "message": "uid not found in request form"}', 400)
@@ -226,6 +227,8 @@ def sendMsg():
 def saveProfile():
   try:
     req_data = request.get_json()
+
+    print("req_data", req_data);
     
     if not req_data['uid']:
       return getResponse('{"status": 400, "message": "uid not found in request form"}', 400)
